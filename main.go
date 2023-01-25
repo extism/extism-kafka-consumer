@@ -29,29 +29,17 @@ type SubscribeTopics struct {
 
 //export consumer_commit
 func consumer_commit(plugin unsafe.Pointer, inputs *C.ExtismVal, nInputs C.ExtismSize, outputs *C.ExtismVal, nOutputs C.ExtismSize, userData uintptr) {
-	fmt.Println("Hello from Go!")
 	s := cgo.Handle(userData)
-	fmt.Println(s)
-	fmt.Println(s.Value())
-
-	// consumer := s.Value().(*kafka.Consumer)
-	// consumer.Commit()
-	inputSlice := unsafe.Slice(inputs, nInputs)
-	outputSlice := unsafe.Slice(outputs, nOutputs)
-
-	// Get memory pointed to by first element of input slice
-	p := extism.GetCurrentPlugin(plugin)
-	mem := p.Memory(extism.ValGetUInt(unsafe.Pointer(&inputSlice[0])))
-	fmt.Println(string(mem))
-
-	outputSlice[0] = inputSlice[0]
+	consumer := s.Value().(*kafka.Consumer)
+	consumer.Commit()
+	fmt.Println("Committed")
 }
 
-func NewConsumerPlugin(filePath string, consumer *kafka.Consumer) (*ConsumerPlugin, error) {
+func NewConsumerPlugin(filePath string) (*ConsumerPlugin, error) {
 	manifest := extism.Manifest{Wasm: []extism.Wasm{extism.WasmFile{Path: filePath}}}
 	ctx := extism.NewContext()
-	commitFunc := extism.NewFunction("consumer_commit", []extism.ValType{extism.I64}, []extism.ValType{extism.I64}, C.consumer_commit, consumer)
-	defer commitFunc.Free()
+	commitFunc := extism.NewFunction("consumer_commit", []extism.ValType{extism.I64}, []extism.ValType{extism.I64}, C.consumer_commit, nil)
+	//defer commitFunc.Free()
 	plugin, err := ctx.PluginFromManifest(manifest, []extism.Function{commitFunc}, false)
 	if err != nil {
 		return nil, err
@@ -61,6 +49,20 @@ func NewConsumerPlugin(filePath string, consumer *kafka.Consumer) (*ConsumerPlug
 		plugin:   &plugin,
 		filePath: filePath,
 	}, nil
+}
+
+// reloads the plugin but now that we have the consumer we can use it as the userdata to consumer_commit
+func (c *ConsumerPlugin) reload(consumer *kafka.Consumer) error {
+	manifest := extism.Manifest{Wasm: []extism.Wasm{extism.WasmFile{Path: c.filePath}}}
+	ctx := c.ctx
+	commitFunc := extism.NewFunction("consumer_commit", []extism.ValType{extism.I64}, []extism.ValType{extism.I64}, C.consumer_commit, consumer)
+	//defer commitFunc.Free()
+	plugin, err := ctx.PluginFromManifest(manifest, []extism.Function{commitFunc}, false)
+	if err != nil {
+		return err
+	}
+	c.plugin = &plugin
+	return nil
 }
 
 type Poll struct {
@@ -185,10 +187,8 @@ func NewPluginMessage(message *kafka.Message) (*Message, error) {
 }
 
 func main() {
-	var consumer *kafka.Consumer
-
 	//args := os.Args[1:]
-	plugin, err := NewConsumerPlugin("./plugin/target/wasm32-unknown-unknown/release/plugin.wasm", consumer)
+	plugin, err := NewConsumerPlugin("./plugin/target/wasm32-unknown-unknown/release/plugin.wasm")
 	if err != nil {
 		panic(err)
 	}
@@ -204,11 +204,16 @@ func main() {
 	}
 	fmt.Println("Config map: ", kcm)
 
-	consumer, err = kafka.NewConsumer(&kcm)
+	consumer, err := kafka.NewConsumer(&kcm)
 	if err != nil {
 		panic(err)
 	}
 	defer consumer.Close()
+
+	plugin.reload(consumer)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println("attached consumer to plugin")
 
