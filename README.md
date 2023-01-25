@@ -17,7 +17,7 @@ This is also to experiment and improve upon the [Host Functions](https://extism.
 
 ## Using
 
-You need docker, rust, and go.
+You need docker, rust, go, and extism installed.
 
 ```bash
 git clone git@github.com/extism/extism-kafka-consumer.git
