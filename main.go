@@ -35,10 +35,15 @@ func consumer_commit(plugin unsafe.Pointer, inputs *C.ExtismVal, nInputs C.Extis
 	fmt.Println("Committed")
 }
 
+func createCommitFunc(consumer *kafka.Consumer) extism.Function {
+	p := []extism.ValType{}
+	return extism.NewFunction("consumer_commit", p, p, C.consumer_commit, consumer)
+}
+
 func NewConsumerPlugin(filePath string) (*ConsumerPlugin, error) {
 	manifest := extism.Manifest{Wasm: []extism.Wasm{extism.WasmFile{Path: filePath}}}
 	ctx := extism.NewContext()
-	commitFunc := extism.NewFunction("consumer_commit", []extism.ValType{extism.I64}, []extism.ValType{extism.I64}, C.consumer_commit, nil)
+	commitFunc := createCommitFunc(nil)
 	//defer commitFunc.Free()
 	plugin, err := ctx.PluginFromManifest(manifest, []extism.Function{commitFunc}, false)
 	if err != nil {
@@ -55,7 +60,7 @@ func NewConsumerPlugin(filePath string) (*ConsumerPlugin, error) {
 func (c *ConsumerPlugin) reload(consumer *kafka.Consumer) error {
 	manifest := extism.Manifest{Wasm: []extism.Wasm{extism.WasmFile{Path: c.filePath}}}
 	ctx := c.ctx
-	commitFunc := extism.NewFunction("consumer_commit", []extism.ValType{extism.I64}, []extism.ValType{extism.I64}, C.consumer_commit, consumer)
+	commitFunc := createCommitFunc(consumer)
 	//defer commitFunc.Free()
 	plugin, err := ctx.PluginFromManifest(manifest, []extism.Function{commitFunc}, false)
 	if err != nil {

@@ -31,6 +31,8 @@ github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1/go.
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/extism/extism v0.2.0 h1:9fsjQI7xNqSwooN1duuPpvmh2iccuZIj606mUlRszA0=
 github.com/extism/extism v0.2.0/go.mod h1:d5IwHeVomfV6LLHCtBVXf1IaB0YlDsjfWi8cZmqJqUI=
+github.com/extism/extism v0.2.1-0.20230125233402-93c65bb4b49b h1:jFZCPn0F7rH+hTID6yEIiJPWLqjVjSA5XoLUkIgGq+Q=
+github.com/extism/extism v0.2.1-0.20230125233402-93c65bb4b49b/go.mod h1:d5IwHeVomfV6LLHCtBVXf1IaB0YlDsjfWi8cZmqJqUI=
 github.com/frankban/quicktest v1.2.2/go.mod h1:Qh/WofXFeiAFII1aEBu529AtJo6Zg2VHscnEsbBnJ20=
 github.com/frankban/quicktest v1.7.2/go.mod h1:jaStnuzAqU1AJdCO0l53JDCJrVDKcS03DbaAcR7Ks/o=
 github.com/frankban/quicktest v1.10.0/go.mod h1:ui7WezCLWMWxVWr1GETZY3smRy0G4KWq9vcPtJmFl7Y=

@@ -2,7 +2,7 @@ use extism_pdk::*;
 use serde::{Serialize, Deserialize};
 
 extern "C" {
-    fn consumer_commit(i: i64) -> i64;
+    fn consumer_commit();
 }
 
 #[derive(Serialize)]
@@ -73,7 +73,7 @@ struct Message {
 
 #[plugin_fn]
 pub fn on_message(Json(msg): Json<Message>) -> FnResult<String> {
-    unsafe { consumer_commit(0) };
+    unsafe { consumer_commit() };
     let offset = msg.topic_partition.offset;
     let divs = (offset % 3 == 0, offset % 5 == 0);
 
