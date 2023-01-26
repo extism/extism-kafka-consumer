@@ -36,8 +36,8 @@ func consumer_commit(plugin unsafe.Pointer, inputs *C.ExtismVal, nInputs C.Extis
 }
 
 func createCommitFunc(consumer *kafka.Consumer) extism.Function {
-	p := []extism.ValType{}
-	return extism.NewFunction("consumer_commit", p, p, C.consumer_commit, consumer)
+	// we can pass nil, nil here because we don't have any paramters or returns for this function
+	return extism.NewFunction("consumer_commit", nil, nil, C.consumer_commit, consumer)
 }
 
 func NewConsumerPlugin(filePath string) (*ConsumerPlugin, error) {
